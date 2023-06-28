@@ -1,35 +1,58 @@
-import { useState, useEffect } from 'react'
-import { getHelloWorld } from "./api";
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import React, { useState } from 'react';
+import TaskList from './components/TaskList';
 
-function App() {
-  const [data, setData] = useState('');
+function App(): JSX.Element {
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [newTask, setNewTask] = useState('');
 
-  useEffect(() => {
-    getHelloWorld().then((resp) => setData(resp.data))
-  }, [])
+  const handleNewTaskChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+    setNewTask(e.target.value);
+  };
+
+  const handleAddTask = (): void => {
+    if (newTask.trim() !== '') {
+      const task: Task = {
+        id: Date.now(),
+        description: newTask,
+        completed: false,
+      };
+      setTasks([...tasks, task]);
+      setNewTask('');
+    }
+  };
+
+  const handleToggleComplete = (taskId: number): void => {
+    const updatedTasks: Task[] = tasks.map((task) =>
+      task.id === taskId ? { ...task, completed: !task.completed } : task
+    );
+    setTasks(updatedTasks);
+  };
+
+  const handleDeleteTask = (taskId: number): void => {
+    const updatedTasks: Task[] = tasks.filter((task) => task.id !== taskId);
+    setTasks(updatedTasks);
+  };
 
   return (
-    <>
+    <div>
+      <h1>Task Manager</h1>
       <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+        <input
+          type="text"
+          value={newTask}
+          onChange={handleNewTaskChange}
+          placeholder="Enter task description"
+        />
+        <button onClick={handleAddTask}>Add Task</button>
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        {data}
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+      <TaskList
+        tasks={tasks}
+        onToggleComplete={handleToggleComplete}
+        onDeleteTask={handleDeleteTask}
+      />
+    </div>
+  );
 }
 
-export default App
+export default App;
+
